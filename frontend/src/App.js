@@ -582,7 +582,7 @@ const ProductDetailModal = ({ product, onClose }) => {
   );
 };
 
-// Main App Component
+// Enhanced Main App Component
 const App = () => {
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
@@ -590,6 +590,17 @@ const App = () => {
   const [filters, setFilters] = useState({});
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [initialized, setInitialized] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  // Handle scroll effect for header
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   // Initialize sample products
   const initializeProducts = async () => {
@@ -658,65 +669,148 @@ const App = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm">
+      {/* Enhanced Header */}
+      <header className={`header ${scrolled ? 'scrolled' : ''}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-gray-900">Authentic Suits</h1>
+              <h1 className="header-logo">✨ Authentic Suits</h1>
             </div>
-            <nav className="flex space-x-8">
-              <a href="#" className="text-gray-700 hover:text-blue-600 font-medium">Shop</a>
-              <a href="#" className="text-gray-700 hover:text-blue-600 font-medium">About</a>
-              <a href="#" className="text-gray-700 hover:text-blue-600 font-medium">Contact</a>
+            
+            {/* Desktop Navigation */}
+            <nav className="hidden md:flex space-x-8">
+              <a href="#" className="nav-link">🏠 Home</a>
+              <a href="#" className="nav-link">🛍️ Shop</a>
+              <a href="#" className="nav-link">ℹ️ About</a>
+              <a href="#" className="nav-link">📞 Contact</a>
+              <a href="#" className="nav-link">📏 Size Guide</a>
             </nav>
+            
+            {/* Mobile Menu Button */}
+            <button
+              className="md:hidden p-2 rounded-lg hover:bg-gray-100"
+              onClick={() => setMobileMenuOpen(true)}
+            >
+              <span className="text-2xl">☰</span>
+            </button>
           </div>
         </div>
       </header>
 
-      {/* Hero Section */}
-      <div className="bg-gradient-to-r from-blue-900 to-purple-900 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-          <div className="text-center">
-            <h2 className="text-4xl md:text-6xl font-bold mb-4">Premium Authentic Suits</h2>
-            <p className="text-xl md:text-2xl text-blue-100 mb-8">Crafted with precision, designed for perfection</p>
-            <button className="bg-white text-blue-900 px-8 py-3 rounded-md font-semibold text-lg hover:bg-gray-100 transition-colors">
-              Shop Collection
-            </button>
+      {/* Mobile Menu */}
+      <MobileMenu 
+        isOpen={mobileMenuOpen} 
+        onClose={() => setMobileMenuOpen(false)} 
+      />
+
+      {/* Enhanced Hero Section */}
+      <section className="hero-section">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+          <div className="hero-content text-center">
+            <h2 className="hero-title">Premium Authentic Suits</h2>
+            <p className="hero-subtitle">Crafted with precision, designed for perfection</p>
+            <div className="hero-button">
+              <button 
+                className="btn-primary text-lg px-8 py-4"
+                onClick={() => document.getElementById('products').scrollIntoView({ behavior: 'smooth' })}
+              >
+                🛍️ Shop Collection
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      </section>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Filters */}
-        <ProductFilters onFilterChange={handleFilterChange} filters={filters} />
+      <main id="products" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {/* Enhanced Filters */}
+        <ProductFilters 
+          onFilterChange={handleFilterChange} 
+          filters={filters}
+          productsCount={filteredProducts.length}
+        />
+
+        {/* Loading State */}
+        {loading && (
+          <div className="flex flex-col items-center justify-center h-64 space-y-4">
+            <div className="loading-spinner"></div>
+            <p className="text-xl text-gray-600">Loading premium suits...</p>
+          </div>
+        )}
 
         {/* Products Grid */}
-        {loading ? (
-          <div className="flex items-center justify-center h-64">
-            <div className="text-xl text-gray-600">Loading products...</div>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredProducts.map((product) => (
+        {!loading && (
+          <div className="product-grid">
+            {filteredProducts.map((product, index) => (
               <ProductCard 
                 key={product.id} 
                 product={product} 
                 onViewDetails={handleViewDetails}
+                index={index}
               />
             ))}
           </div>
         )}
 
+        {/* Empty State */}
         {!loading && filteredProducts.length === 0 && (
           <div className="text-center py-16">
-            <p className="text-xl text-gray-600">No products found matching your criteria.</p>
+            <div className="text-6xl mb-4">🔍</div>
+            <h3 className="text-2xl font-bold text-gray-700 mb-2">No suits found</h3>
+            <p className="text-gray-500 mb-6">Try adjusting your filters to see more products</p>
+            <button 
+              onClick={() => {
+                setFilters({});
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              className="btn-secondary"
+            >
+              Reset Filters
+            </button>
           </div>
         )}
       </main>
 
-      {/* Product Detail Modal */}
+      {/* Enhanced Footer */}
+      <footer className="bg-gray-900 text-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div>
+              <h3 className="text-xl font-bold mb-4">✨ Authentic Suits</h3>
+              <p className="text-gray-400">Premium quality suits crafted with precision and attention to detail.</p>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-4">Quick Links</h4>
+              <ul className="space-y-2 text-gray-400">
+                <li><a href="#" className="hover:text-white">Shop All</a></li>
+                <li><a href="#" className="hover:text-white">Size Guide</a></li>
+                <li><a href="#" className="hover:text-white">Care Instructions</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-4">Customer Service</h4>
+              <ul className="space-y-2 text-gray-400">
+                <li><a href="#" className="hover:text-white">Contact Us</a></li>
+                <li><a href="#" className="hover:text-white">Returns</a></li>
+                <li><a href="#" className="hover:text-white">Shipping</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-4">Follow Us</h4>
+              <div className="flex space-x-4">
+                <a href="#" className="text-gray-400 hover:text-white text-2xl">📘</a>
+                <a href="#" className="text-gray-400 hover:text-white text-2xl">📷</a>
+                <a href="#" className="text-gray-400 hover:text-white text-2xl">🐦</a>
+              </div>
+            </div>
+          </div>
+          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
+            <p>&copy; 2024 Authentic Suits. All rights reserved.</p>
+          </div>
+        </div>
+      </footer>
+
+      {/* Enhanced Product Detail Modal */}
       {selectedProduct && (
         <ProductDetailModal 
           product={selectedProduct} 
