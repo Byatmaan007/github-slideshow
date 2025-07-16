@@ -137,8 +137,11 @@ const ProductFilters = ({ onFilterChange, filters, productsCount }) => {
   );
 };
 
-// Product Card Component
-const ProductCard = ({ product, onViewDetails }) => {
+// Enhanced Product Card Component
+const ProductCard = ({ product, onViewDetails, index }) => {
+  const [isImageLoaded, setIsImageLoaded] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+
   const formatPrice = (price) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -146,74 +149,174 @@ const ProductCard = ({ product, onViewDetails }) => {
     }).format(price);
   };
 
+  const calculateDiscount = () => {
+    if (product.original_price) {
+      const discount = Math.round(((product.original_price - product.price) / product.original_price) * 100);
+      return discount;
+    }
+    return 0;
+  };
+
+  const getColorStyle = (color) => {
+    const colorMap = {
+      'charcoal': '#36454F',
+      'navy': '#000080',
+      'black': '#000000',
+      'deep navy': '#000080',
+      'midnight black': '#000000',
+      'midnight blue': '#191970',
+      'light grey': '#D3D3D3',
+      'khaki': '#F0E68C',
+      'dark grey': '#A9A9A9'
+    };
+    return colorMap[color.toLowerCase()] || color.toLowerCase();
+  };
+
   return (
-    <div className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 group">
-      <div className="relative overflow-hidden">
+    <div 
+      className={`product-card product-grid-item hover-shadow ${!product.in_stock ? 'opacity-75' : ''}`}
+      style={{ animationDelay: `${index * 0.1}s` }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      <div className="product-image relative">
+        {!isImageLoaded && (
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+            <div className="loading-dots">
+              <div className="loading-dot"></div>
+              <div className="loading-dot"></div>
+              <div className="loading-dot"></div>
+            </div>
+          </div>
+        )}
+        
         <img 
           src={product.image_url} 
           alt={product.name}
-          className="w-full h-80 object-cover group-hover:scale-105 transition-transform duration-300"
+          className="w-full h-80 object-cover"
+          onLoad={() => setIsImageLoaded(true)}
+          loading="lazy"
         />
+        
+        {/* Interactive Badges */}
         {product.featured && (
-          <div className="absolute top-4 left-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-3 py-1 rounded-full text-sm font-semibold">
-            Featured
+          <div className="badge-featured">
+            ⭐ Featured
           </div>
         )}
-        {product.original_price && (
-          <div className="absolute top-4 right-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
-            Sale
+        
+        {calculateDiscount() > 0 && (
+          <div className="badge-sale">
+            {calculateDiscount()}% OFF
           </div>
         )}
+        
         {!product.in_stock && (
-          <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-            <span className="text-white text-xl font-bold">Out of Stock</span>
+          <div className="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center">
+            <span className="text-white text-xl font-bold bg-red-500 px-4 py-2 rounded-lg">
+              Out of Stock
+            </span>
           </div>
         )}
+        
+        {/* Quick Action Buttons */}
+        <div className={`absolute top-4 right-4 flex flex-col space-y-2 transition-all duration-300 ${isHovered ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-4'}`}>
+          <button className="bg-white bg-opacity-90 hover:bg-opacity-100 text-gray-800 p-2 rounded-full shadow-lg hover:shadow-xl transition-all duration-300">
+            <span className="text-lg">❤️</span>
+          </button>
+          <button className="bg-white bg-opacity-90 hover:bg-opacity-100 text-gray-800 p-2 rounded-full shadow-lg hover:shadow-xl transition-all duration-300">
+            <span className="text-lg">🔍</span>
+          </button>
+        </div>
       </div>
       
-      <div className="p-6">
-        <h3 className="text-xl font-bold text-gray-800 mb-2">{product.name}</h3>
-        <p className="text-gray-600 mb-3 line-clamp-2">{product.description}</p>
-        
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center space-x-2">
-            <span className="text-2xl font-bold text-blue-600">{formatPrice(product.price)}</span>
-            {product.original_price && (
-              <span className="text-lg text-gray-500 line-through">{formatPrice(product.original_price)}</span>
-            )}
-          </div>
+      <div className="p-6 space-y-4">
+        <div>
+          <h3 className="text-xl font-bold text-gray-800 mb-2 line-clamp-1">{product.name}</h3>
+          <p className="text-gray-600 mb-3 line-clamp-2">{product.description}</p>
         </div>
         
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center space-x-4">
-            <span className="text-sm text-gray-500">
+        {/* Price Section */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <span className="price-display">{formatPrice(product.price)}</span>
+            {product.original_price && (
+              <span className="price-original">{formatPrice(product.original_price)}</span>
+            )}
+          </div>
+          {calculateDiscount() > 0 && (
+            <div className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-sm font-semibold">
+              Save {formatPrice(product.original_price - product.price)}
+            </div>
+          )}
+        </div>
+        
+        {/* Product Details */}
+        <div className="flex items-center justify-between py-2">
+          <div className="flex items-center space-x-2">
+            <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
               {product.fabric_description}
             </span>
           </div>
-          <span className="text-sm font-medium text-gray-700 capitalize bg-gray-100 px-2 py-1 rounded">
+          <span className="text-sm font-semibold text-gray-700 capitalize bg-blue-100 text-blue-800 px-3 py-1 rounded-full">
             {product.suit_type}
           </span>
         </div>
         
+        {/* Color Swatches */}
         <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <span className="text-sm text-gray-500 mr-2">Colors:</span>
+            <div className="flex space-x-1">
+              {product.colors.slice(0, 4).map((color, colorIndex) => (
+                <div 
+                  key={colorIndex}
+                  className="color-selector interactive-element"
+                  style={{ backgroundColor: getColorStyle(color) }}
+                  title={color}
+                />
+              ))}
+              {product.colors.length > 4 && (
+                <div className="text-xs text-gray-500 ml-2 bg-gray-100 px-2 py-1 rounded-full">
+                  +{product.colors.length - 4}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+        
+        {/* Size Indicator */}
+        <div className="flex items-center space-x-2 text-sm text-gray-500">
+          <span>📏 Sizes:</span>
           <div className="flex space-x-1">
-            {product.colors.slice(0, 3).map((color, index) => (
-              <div 
-                key={index}
-                className="w-6 h-6 rounded-full border-2 border-gray-300"
-                style={{ backgroundColor: color.toLowerCase() === 'charcoal' ? '#36454F' : color.toLowerCase() === 'navy' ? '#000080' : color.toLowerCase() }}
-                title={color}
-              />
+            {product.sizes.slice(0, 3).map((size, sizeIndex) => (
+              <span key={sizeIndex} className="bg-gray-100 px-2 py-1 rounded text-xs">
+                {size}
+              </span>
             ))}
-            {product.colors.length > 3 && (
-              <span className="text-xs text-gray-500 ml-2">+{product.colors.length - 3}</span>
+            {product.sizes.length > 3 && (
+              <span className="bg-gray-100 px-2 py-1 rounded text-xs">
+                +{product.sizes.length - 3}
+              </span>
             )}
           </div>
+        </div>
+        
+        {/* Action Buttons */}
+        <div className="flex space-x-2 pt-4">
           <button 
             onClick={() => onViewDetails(product)}
-            className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-md hover:from-blue-700 hover:to-purple-700 transition-all duration-200 font-semibold"
+            className="flex-1 btn-primary interactive-element"
+            disabled={!product.in_stock}
           >
             View Details
+          </button>
+          <button 
+            onClick={() => alert('Quick add to cart!')}
+            className="bg-gray-100 hover:bg-gray-200 text-gray-800 px-4 py-2 rounded-lg font-semibold transition-all duration-300 disabled:opacity-50"
+            disabled={!product.in_stock}
+          >
+            🛒
           </button>
         </div>
       </div>
