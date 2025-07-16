@@ -5,64 +5,131 @@ import axios from "axios";
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-// Filter Component
-const ProductFilters = ({ onFilterChange, filters }) => {
+// Mobile Menu Component
+const MobileMenu = ({ isOpen, onClose }) => {
+  return (
+    <div className={`mobile-menu ${isOpen ? 'open' : 'closed'}`}>
+      <div className="p-6">
+        <div className="flex justify-between items-center mb-8">
+          <h2 className="text-2xl font-bold text-gray-900">Authentic Suits</h2>
+          <button 
+            onClick={onClose}
+            className="text-gray-500 hover:text-gray-700 text-3xl"
+          >
+            ×
+          </button>
+        </div>
+        <nav className="space-y-4">
+          <a href="#" className="block text-xl text-gray-700 hover:text-blue-600 py-2">Shop</a>
+          <a href="#" className="block text-xl text-gray-700 hover:text-blue-600 py-2">About</a>
+          <a href="#" className="block text-xl text-gray-700 hover:text-blue-600 py-2">Contact</a>
+          <a href="#" className="block text-xl text-gray-700 hover:text-blue-600 py-2">Size Guide</a>
+          <a href="#" className="block text-xl text-gray-700 hover:text-blue-600 py-2">Care Instructions</a>
+        </nav>
+      </div>
+    </div>
+  );
+};
+
+// Enhanced Filter Component
+const ProductFilters = ({ onFilterChange, filters, productsCount }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+
   const suitTypes = [
-    { value: '', label: 'All Suits' },
-    { value: 'business', label: 'Business' },
-    { value: 'formal', label: 'Formal' },
-    { value: 'wedding', label: 'Wedding' },
-    { value: 'casual', label: 'Casual' },
-    { value: 'tuxedo', label: 'Tuxedo' }
+    { value: '', label: 'All Suits', icon: '👔' },
+    { value: 'business', label: 'Business', icon: '💼' },
+    { value: 'formal', label: 'Formal', icon: '🎩' },
+    { value: 'wedding', label: 'Wedding', icon: '💒' },
+    { value: 'casual', label: 'Casual', icon: '👕' },
+    { value: 'tuxedo', label: 'Tuxedo', icon: '🤵' }
   ];
 
   const fabrics = [
-    { value: '', label: 'All Fabrics' },
-    { value: 'wool', label: 'Wool' },
-    { value: 'cotton', label: 'Cotton' },
-    { value: 'silk', label: 'Silk' },
-    { value: 'linen', label: 'Linen' },
-    { value: 'blend', label: 'Blend' }
+    { value: '', label: 'All Fabrics', icon: '🧵' },
+    { value: 'wool', label: 'Wool', icon: '🐑' },
+    { value: 'cotton', label: 'Cotton', icon: '🌱' },
+    { value: 'silk', label: 'Silk', icon: '🪱' },
+    { value: 'linen', label: 'Linen', icon: '🌾' },
+    { value: 'blend', label: 'Blend', icon: '🔄' }
   ];
 
+  const clearFilters = () => {
+    onFilterChange('suit_type', '');
+    onFilterChange('fabric', '');
+    onFilterChange('in_stock', undefined);
+  };
+
+  const hasActiveFilters = filters.suit_type || filters.fabric || filters.in_stock !== undefined;
+
   return (
-    <div className="mb-8 bg-white p-6 rounded-lg shadow-lg">
-      <h3 className="text-lg font-semibold mb-4 text-gray-800">Filter Products</h3>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Suit Type</label>
+    <div className="filter-section mb-8 glass-effect">
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-xl font-bold text-gray-800 flex items-center">
+          <span className="mr-2">🔍</span>
+          Filter Products
+          <span className="ml-2 text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+            {productsCount} found
+          </span>
+        </h3>
+        <div className="flex items-center space-x-2">
+          {hasActiveFilters && (
+            <button
+              onClick={clearFilters}
+              className="btn-ghost text-sm"
+            >
+              Clear All
+            </button>
+          )}
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="md:hidden btn-ghost text-sm"
+          >
+            {isExpanded ? 'Hide' : 'Show'} Filters
+          </button>
+        </div>
+      </div>
+      
+      <div className={`grid grid-cols-1 md:grid-cols-3 gap-6 ${isExpanded ? 'block' : 'hidden md:grid'}`}>
+        <div className="space-y-2">
+          <label className="block text-sm font-semibold text-gray-700">Suit Type</label>
           <select 
             value={filters.suit_type || ''}
             onChange={(e) => onFilterChange('suit_type', e.target.value)}
-            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="form-select interactive-element"
           >
             {suitTypes.map(type => (
-              <option key={type.value} value={type.value}>{type.label}</option>
+              <option key={type.value} value={type.value}>
+                {type.icon} {type.label}
+              </option>
             ))}
           </select>
         </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Fabric</label>
+        
+        <div className="space-y-2">
+          <label className="block text-sm font-semibold text-gray-700">Fabric</label>
           <select 
             value={filters.fabric || ''}
             onChange={(e) => onFilterChange('fabric', e.target.value)}
-            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="form-select interactive-element"
           >
             {fabrics.map(fabric => (
-              <option key={fabric.value} value={fabric.value}>{fabric.label}</option>
+              <option key={fabric.value} value={fabric.value}>
+                {fabric.icon} {fabric.label}
+              </option>
             ))}
           </select>
         </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Availability</label>
+        
+        <div className="space-y-2">
+          <label className="block text-sm font-semibold text-gray-700">Availability</label>
           <select 
             value={filters.in_stock !== undefined ? filters.in_stock.toString() : ''}
             onChange={(e) => onFilterChange('in_stock', e.target.value === '' ? undefined : e.target.value === 'true')}
-            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="form-select interactive-element"
           >
-            <option value="">All Products</option>
-            <option value="true">In Stock</option>
-            <option value="false">Out of Stock</option>
+            <option value="">📦 All Products</option>
+            <option value="true">✅ In Stock</option>
+            <option value="false">❌ Out of Stock</option>
           </select>
         </div>
       </div>
