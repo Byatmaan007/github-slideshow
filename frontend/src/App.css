@@ -242,7 +242,7 @@ body {
 }
 
 .color-selector {
-  @apply w-10 h-10 rounded-full border-3 border-gray-300 cursor-pointer hover:border-blue-500 transition-all duration-300 hover:shadow-lg;
+  @apply w-10 h-10 rounded-full border-4 border-gray-300 cursor-pointer hover:border-blue-500 transition-all duration-300 hover:shadow-lg;
 }
 
 .color-selector:hover {
