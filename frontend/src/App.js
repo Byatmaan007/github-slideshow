@@ -324,8 +324,21 @@ const ProductCard = ({ product, onViewDetails, index }) => {
   );
 };
 
-// Product Detail Modal
+// Enhanced Product Detail Modal
 const ProductDetailModal = ({ product, onClose }) => {
+  const [selectedColor, setSelectedColor] = useState('');
+  const [selectedSize, setSelectedSize] = useState('');
+  const [quantity, setQuantity] = useState(1);
+  const [activeTab, setActiveTab] = useState('details');
+
+  useEffect(() => {
+    if (product) {
+      setSelectedColor(product.colors[0] || '');
+      setSelectedSize(product.sizes[0] || '');
+      setQuantity(1);
+    }
+  }, [product]);
+
   if (!product) return null;
 
   const formatPrice = (price) => {
@@ -335,90 +348,232 @@ const ProductDetailModal = ({ product, onClose }) => {
     }).format(price);
   };
 
+  const calculateDiscount = () => {
+    if (product.original_price) {
+      return Math.round(((product.original_price - product.price) / product.original_price) * 100);
+    }
+    return 0;
+  };
+
+  const getColorStyle = (color) => {
+    const colorMap = {
+      'charcoal': '#36454F',
+      'navy': '#000080',
+      'black': '#000000',
+      'deep navy': '#000080',
+      'midnight black': '#000000',
+      'midnight blue': '#191970',
+      'light grey': '#D3D3D3',
+      'khaki': '#F0E68C',
+      'dark grey': '#A9A9A9'
+    };
+    return colorMap[color.toLowerCase()] || color.toLowerCase();
+  };
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg max-w-4xl max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white border-b p-4 flex justify-between items-center">
-          <h2 className="text-2xl font-bold text-gray-800">{product.name}</h2>
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content max-w-6xl" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <h2 className="text-3xl font-bold text-gray-800">{product.name}</h2>
           <button 
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700 text-2xl"
+            className="modal-close"
           >
             ×
           </button>
         </div>
         
-        <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div>
-              <img 
-                src={product.image_url} 
-                alt={product.name}
-                className="w-full h-96 object-cover rounded-lg"
-              />
+        <div className="p-6 sm:p-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Image Section */}
+            <div className="space-y-4">
+              <div className="relative">
+                <img 
+                  src={product.image_url} 
+                  alt={product.name}
+                  className="w-full h-96 lg:h-[500px] object-cover rounded-xl shadow-lg"
+                />
+                {calculateDiscount() > 0 && (
+                  <div className="absolute top-4 right-4 bg-red-500 text-white px-4 py-2 rounded-full font-bold">
+                    {calculateDiscount()}% OFF
+                  </div>
+                )}
+              </div>
+              
+              {/* Image Gallery Placeholder */}
+              <div className="grid grid-cols-4 gap-2">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="aspect-square bg-gray-100 rounded-lg flex items-center justify-center">
+                    <span className="text-gray-400 text-sm">📷</span>
+                  </div>
+                ))}
+              </div>
             </div>
             
-            <div className="space-y-4">
-              <div>
-                <div className="flex items-center space-x-2 mb-2">
-                  <span className="text-3xl font-bold text-blue-600">{formatPrice(product.price)}</span>
+            {/* Details Section */}
+            <div className="space-y-6">
+              {/* Price Section */}
+              <div className="border-b pb-4">
+                <div className="flex items-center space-x-4 mb-2">
+                  <span className="text-4xl font-bold text-gradient">{formatPrice(product.price)}</span>
                   {product.original_price && (
-                    <span className="text-xl text-gray-500 line-through">{formatPrice(product.original_price)}</span>
+                    <span className="text-2xl text-gray-500 line-through">{formatPrice(product.original_price)}</span>
                   )}
                 </div>
-                <p className="text-gray-600 mb-4">{product.description}</p>
+                {calculateDiscount() > 0 && (
+                  <div className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-semibold inline-block">
+                    Save {formatPrice(product.original_price - product.price)}
+                  </div>
+                )}
               </div>
               
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <h4 className="font-semibold text-gray-800 mb-2">Suit Type</h4>
-                  <p className="text-gray-600 capitalize">{product.suit_type}</p>
-                </div>
-                <div>
-                  <h4 className="font-semibold text-gray-800 mb-2">Fabric</h4>
-                  <p className="text-gray-600">{product.fabric_description}</p>
-                </div>
-              </div>
-              
+              {/* Product Info */}
               <div>
-                <h4 className="font-semibold text-gray-800 mb-2">Available Colors</h4>
-                <div className="flex flex-wrap space-x-2">
+                <p className="text-gray-600 text-lg leading-relaxed mb-4">{product.description}</p>
+                
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <h4 className="font-semibold text-gray-800 mb-1">Suit Type</h4>
+                    <p className="text-gray-600 capitalize">{product.suit_type}</p>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-800 mb-1">Fabric</h4>
+                    <p className="text-gray-600">{product.fabric_description}</p>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Color Selection */}
+              <div>
+                <h4 className="font-semibold text-gray-800 mb-3">Color: {selectedColor}</h4>
+                <div className="flex flex-wrap gap-2">
                   {product.colors.map((color, index) => (
-                    <div key={index} className="flex items-center space-x-2 mb-2">
-                      <div 
-                        className="w-6 h-6 rounded-full border-2 border-gray-300"
-                        style={{ backgroundColor: color.toLowerCase() === 'charcoal' ? '#36454F' : color.toLowerCase() === 'navy' ? '#000080' : color.toLowerCase() }}
-                      />
-                      <span className="text-sm text-gray-600">{color}</span>
-                    </div>
+                    <button
+                      key={index}
+                      onClick={() => setSelectedColor(color)}
+                      className={`color-selector ${selectedColor === color ? 'selected' : ''}`}
+                      style={{ backgroundColor: getColorStyle(color) }}
+                      title={color}
+                    />
                   ))}
                 </div>
               </div>
               
+              {/* Size Selection */}
               <div>
-                <h4 className="font-semibold text-gray-800 mb-2">Available Sizes</h4>
-                <div className="flex flex-wrap space-x-2">
+                <h4 className="font-semibold text-gray-800 mb-3">Size: {selectedSize}</h4>
+                <div className="flex flex-wrap gap-2">
                   {product.sizes.map((size, index) => (
-                    <span key={index} className="border border-gray-300 px-3 py-1 rounded text-sm">
+                    <button
+                      key={index}
+                      onClick={() => setSelectedSize(size)}
+                      className={`size-selector ${selectedSize === size ? 'selected' : ''}`}
+                    >
                       {size}
-                    </span>
+                    </button>
                   ))}
                 </div>
               </div>
               
+              {/* Quantity Selection */}
               <div>
-                <h4 className="font-semibold text-gray-800 mb-2">Care Instructions</h4>
-                <p className="text-gray-600 text-sm">{product.care_instructions}</p>
+                <h4 className="font-semibold text-gray-800 mb-3">Quantity</h4>
+                <div className="flex items-center space-x-4">
+                  <button
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    className="bg-gray-100 hover:bg-gray-200 text-gray-800 w-10 h-10 rounded-lg font-semibold"
+                  >
+                    -
+                  </button>
+                  <span className="text-xl font-semibold w-8 text-center">{quantity}</span>
+                  <button
+                    onClick={() => setQuantity(quantity + 1)}
+                    className="bg-gray-100 hover:bg-gray-200 text-gray-800 w-10 h-10 rounded-lg font-semibold"
+                  >
+                    +
+                  </button>
+                </div>
               </div>
               
-              <div className="pt-4">
+              {/* Action Buttons */}
+              <div className="space-y-3">
                 <button 
-                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-md hover:from-blue-700 hover:to-purple-700 transition-all duration-200 font-semibold text-lg"
-                  onClick={() => alert('Shopping cart coming soon!')}
+                  className="w-full btn-primary text-lg py-4"
+                  onClick={() => alert(`Added ${quantity} ${product.name} (${selectedColor}, ${selectedSize}) to cart!`)}
+                  disabled={!product.in_stock}
                 >
-                  Add to Cart
+                  {product.in_stock ? `Add to Cart - ${formatPrice(product.price * quantity)}` : 'Out of Stock'}
                 </button>
+                
+                <div className="grid grid-cols-2 gap-3">
+                  <button className="btn-secondary">
+                    ❤️ Add to Wishlist
+                  </button>
+                  <button className="btn-secondary">
+                    📏 Size Guide
+                  </button>
+                </div>
               </div>
+            </div>
+          </div>
+          
+          {/* Tabbed Content */}
+          <div className="mt-8 border-t pt-8">
+            <div className="flex space-x-4 mb-6">
+              {['details', 'care', 'shipping'].map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`px-4 py-2 rounded-lg font-semibold transition-all duration-300 ${
+                    activeTab === tab 
+                      ? 'bg-blue-600 text-white' 
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                </button>
+              ))}
+            </div>
+            
+            <div className="bg-gray-50 rounded-lg p-6">
+              {activeTab === 'details' && (
+                <div>
+                  <h4 className="font-semibold text-gray-800 mb-3">Product Details</h4>
+                  <p className="text-gray-600 mb-4">{product.description}</p>
+                  <ul className="space-y-2 text-gray-600">
+                    <li>• Fabric: {product.fabric_description}</li>
+                    <li>• Available Colors: {product.colors.join(', ')}</li>
+                    <li>• Available Sizes: {product.sizes.join(', ')}</li>
+                    <li>• Type: {product.suit_type.charAt(0).toUpperCase() + product.suit_type.slice(1)}</li>
+                  </ul>
+                </div>
+              )}
+              
+              {activeTab === 'care' && (
+                <div>
+                  <h4 className="font-semibold text-gray-800 mb-3">Care Instructions</h4>
+                  <p className="text-gray-600 mb-4">{product.care_instructions}</p>
+                  <ul className="space-y-2 text-gray-600">
+                    <li>• Store on padded hangers</li>
+                    <li>• Avoid direct sunlight</li>
+                    <li>• Professional cleaning recommended</li>
+                    <li>• Iron at low temperature if needed</li>
+                  </ul>
+                </div>
+              )}
+              
+              {activeTab === 'shipping' && (
+                <div>
+                  <h4 className="font-semibold text-gray-800 mb-3">Shipping & Returns</h4>
+                  <ul className="space-y-2 text-gray-600">
+                    <li>• Free shipping on orders over $500</li>
+                    <li>• Standard delivery: 3-5 business days</li>
+                    <li>• Express delivery: 1-2 business days</li>
+                    <li>• 30-day return policy</li>
+                    <li>• Free returns and exchanges</li>
+                  </ul>
+                </div>
+              )}
             </div>
           </div>
         </div>
