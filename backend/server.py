@@ -525,6 +525,107 @@ async def initialize_culture_stories():
     
     return {"message": f"Initialized {len(nepal_stories)} culture stories"}
 
+# JSON Import Routes
+class ProductImport(BaseModel):
+    products: List[ProductCreate]
+
+class CultureStoryImport(BaseModel):
+    stories: List[dict]
+
+@api_router.post("/import/products")
+async def import_products_from_json(import_data: ProductImport):
+    """Import products from JSON data. This will replace existing products."""
+    try:
+        # Clear existing products
+        await db.products.delete_many({})
+        
+        # Import new products
+        imported_count = 0
+        for product_data in import_data.products:
+            product_obj = Product(**product_data.dict())
+            await db.products.insert_one(product_obj.dict())
+            imported_count += 1
+        
+        return {
+            "message": f"Successfully imported {imported_count} products",
+            "imported_count": imported_count
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Import failed: {str(e)}")
+
+@api_router.post("/import/culture-stories")
+async def import_culture_stories_from_json(import_data: CultureStoryImport):
+    """Import culture stories from JSON data. This will replace existing stories."""
+    try:
+        # Clear existing culture stories
+        await db.culture_stories.delete_many({})
+        
+        # Import new stories
+        imported_count = 0
+        for story_data in import_data.stories:
+            story_obj = CultureStory(**story_data)
+            await db.culture_stories.insert_one(story_obj.dict())
+            imported_count += 1
+        
+        return {
+            "message": f"Successfully imported {imported_count} culture stories",
+            "imported_count": imported_count
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Import failed: {str(e)}")
+
+@api_router.get("/export/products")
+async def export_products():
+    """Export all products as JSON for backup or editing."""
+    products = await db.products.find().to_list(1000)
+    return {"products": [Product(**product).dict() for product in products]}
+
+@api_router.get("/export/culture-stories")
+async def export_culture_stories():
+    """Export all culture stories as JSON for backup or editing."""
+    stories = await db.culture_stories.find().to_list(1000)
+    return {"stories": [CultureStory(**story).dict() for story in stories]}
+
+@api_router.post("/import/complete-data")
+async def import_complete_data(request: Request):
+    """Import complete data including products and culture stories from JSON."""
+    try:
+        data = await request.json()
+        
+        imported_products = 0
+        imported_stories = 0
+        
+        # Import products if provided
+        if "products" in data and data["products"]:
+            await db.products.delete_many({})
+            for product_data in data["products"]:
+                # Remove id if present to generate new UUID
+                if "id" in product_data:
+                    del product_data["id"]
+                product_obj = Product(**product_data)
+                await db.products.insert_one(product_obj.dict())
+                imported_products += 1
+        
+        # Import culture stories if provided
+        if "culture_stories" in data and data["culture_stories"]:
+            await db.culture_stories.delete_many({})
+            for story_data in data["culture_stories"]:
+                # Remove id if present to generate new UUID
+                if "id" in story_data:
+                    del story_data["id"]
+                story_obj = CultureStory(**story_data)
+                await db.culture_stories.insert_one(story_obj.dict())
+                imported_stories += 1
+        
+        return {
+            "message": "Data import completed successfully",
+            "imported_products": imported_products,
+            "imported_stories": imported_stories
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Import failed: {str(e)}")
+
 # Initialize sample products
 @api_router.post("/products/initialize")
 async def initialize_products():
