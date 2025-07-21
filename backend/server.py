@@ -214,15 +214,15 @@ class CultureStory(BaseModel):
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
-@app.get("/import-tool")
+@api_router.get("/import-tool")
 async def serve_import_tool():
     return FileResponse("/app/backend/import-tool.html")
 
-@app.get("/sample-import-data.json")
+@api_router.get("/sample-import-data.json")
 async def serve_sample_data():
     return FileResponse("/app/sample-import-data.json")
 
-@app.get("/JSON_IMPORT_GUIDE.md")
+@api_router.get("/import-guide.md")
 async def serve_import_guide():
     return FileResponse("/app/JSON_IMPORT_GUIDE.md")
 
