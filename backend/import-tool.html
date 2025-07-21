@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Import Tool - Authentic Nepal Suits</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 800px;
+            margin: 2rem;
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 2rem;
+        }
+        
+        .section {
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            border: 2px dashed #e0e0e0;
+            border-radius: 10px;
+            transition: border-color 0.3s ease;
+        }
+        
+        .section:hover {
+            border-color: #667eea;
+        }
+        
+        h2 {
+            color: #555;
+            margin-bottom: 1rem;
+        }
+        
+        .file-input-wrapper {
+            position: relative;
+            margin-bottom: 1rem;
+        }
+        
+        .file-input {
+            position: absolute;
+            left: -9999px;
+        }
+        
+        .file-input-label {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background: #667eea;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        
+        .file-input-label:hover {
+            background: #5a67d8;
+        }
+        
+        .textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            resize: vertical;
+        }
+        
+        .button {
+            background: #48bb78;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background 0.3s ease;
+            margin-right: 0.5rem;
+        }
+        
+        .button:hover {
+            background: #38a169;
+        }
+        
+        .button.danger {
+            background: #f56565;
+        }
+        
+        .button.danger:hover {
+            background: #e53e3e;
+        }
+        
+        .result {
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 5px;
+            display: none;
+        }
+        
+        .result.success {
+            background: #f0fff4;
+            border: 1px solid #9ae6b4;
+            color: #276749;
+        }
+        
+        .result.error {
+            background: #fed7d7;
+            border: 1px solid #fc8181;
+            color: #742a2a;
+        }
+        
+        .export-section {
+            background: #f7fafc;
+            border: 2px solid #e2e8f0;
+        }
+        
+        .download-link {
+            display: inline-block;
+            margin-top: 0.5rem;
+            color: #667eea;
+            text-decoration: none;
+        }
+        
+        .download-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🇳🇵 Database Import Tool</h1>
+        
+        <div class="section">
+            <h2>📤 Import Complete Data</h2>
+            <p>Upload a JSON file or paste JSON data to import both products and culture stories.</p>
+            
+            <div class="file-input-wrapper">
+                <input type="file" id="jsonFile" class="file-input" accept=".json" />
+                <label for="jsonFile" class="file-input-label">Choose JSON File</label>
+                <span id="fileName"></span>
+            </div>
+            
+            <textarea 
+                id="jsonData" 
+                class="textarea" 
+                placeholder="Or paste your JSON data here..."
+            ></textarea>
+            
+            <button class="button" onclick="importData()">Import Data</button>
+            <button class="button danger" onclick="clearTextarea()">Clear</button>
+            
+            <div id="importResult" class="result"></div>
+        </div>
+        
+        <div class="section export-section">
+            <h2>📥 Export Current Data</h2>
+            <p>Download your current database content as JSON for backup or editing.</p>
+            
+            <button class="button" onclick="exportProducts()">Export Products</button>
+            <button class="button" onclick="exportCultureStories()">Export Culture Stories</button>
+            <button class="button" onclick="exportAllData()">Export All Data</button>
+            
+            <div id="exportResult" class="result"></div>
+        </div>
+        
+        <div class="section">
+            <h2>📋 Sample Data</h2>
+            <p>Need a template? <a href="/sample-import-data.json" class="download-link" download>Download sample JSON file</a></p>
+            <p>Or check the <a href="/JSON_IMPORT_GUIDE.md" class="download-link">Import Guide</a> for detailed instructions.</p>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin + '/api';
+        
+        // File input handler
+        document.getElementById('jsonFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                document.getElementById('fileName').textContent = ` Selected: ${file.name}`;
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('jsonData').value = e.target.result;
+                };
+                reader.readAsText(file);
+            }
+        });
+        
+        function clearTextarea() {
+            document.getElementById('jsonData').value = '';
+            document.getElementById('fileName').textContent = '';
+            hideResult('importResult');
+        }
+        
+        function showResult(elementId, message, isSuccess = true) {
+            const result = document.getElementById(elementId);
+            result.textContent = message;
+            result.className = `result ${isSuccess ? 'success' : 'error'}`;
+            result.style.display = 'block';
+        }
+        
+        function hideResult(elementId) {
+            document.getElementById(elementId).style.display = 'none';
+        }
+        
+        async function importData() {
+            const jsonData = document.getElementById('jsonData').value.trim();
+            
+            if (!jsonData) {
+                showResult('importResult', 'Please provide JSON data or select a file.', false);
+                return;
+            }
+            
+            try {
+                const data = JSON.parse(jsonData);
+                
+                const response = await fetch(`${API_BASE}/import/complete-data`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showResult('importResult', 
+                        `✅ Import successful! Products: ${result.imported_products}, Stories: ${result.imported_stories}`, 
+                        true
+                    );
+                } else {
+                    showResult('importResult', `❌ Import failed: ${result.detail}`, false);
+                }
+            } catch (error) {
+                showResult('importResult', `❌ Error: ${error.message}`, false);
+            }
+        }
+        
+        async function exportProducts() {
+            try {
+                const response = await fetch(`${API_BASE}/export/products`);
+                const data = await response.json();
+                
+                downloadJSON(data, 'products-export.json');
+                showResult('exportResult', '✅ Products exported successfully!', true);
+            } catch (error) {
+                showResult('exportResult', `❌ Export failed: ${error.message}`, false);
+            }
+        }
+        
+        async function exportCultureStories() {
+            try {
+                const response = await fetch(`${API_BASE}/export/culture-stories`);
+                const data = await response.json();
+                
+                downloadJSON(data, 'culture-stories-export.json');
+                showResult('exportResult', '✅ Culture stories exported successfully!', true);
+            } catch (error) {
+                showResult('exportResult', `❌ Export failed: ${error.message}`, false);
+            }
+        }
+        
+        async function exportAllData() {
+            try {
+                const [productsResponse, storiesResponse] = await Promise.all([
+                    fetch(`${API_BASE}/export/products`),
+                    fetch(`${API_BASE}/export/culture-stories`)
+                ]);
+                
+                const productsData = await productsResponse.json();
+                const storiesData = await storiesResponse.json();
+                
+                const completeData = {
+                    products: productsData.products,
+                    culture_stories: storiesData.stories
+                };
+                
+                downloadJSON(completeData, 'complete-data-export.json');
+                showResult('exportResult', '✅ All data exported successfully!', true);
+            } catch (error) {
+                showResult('exportResult', `❌ Export failed: ${error.message}`, false);
+            }
+        }
+        
+        function downloadJSON(data, filename) {
+            const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>
