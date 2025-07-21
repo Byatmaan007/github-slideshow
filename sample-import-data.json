@@ -1,0 +1,82 @@
+{
+  "products": [
+    {
+      "name": "Premium Executive Suit",
+      "description": "Our flagship business suit made from the finest Nepalese wool. Perfect for executives and professionals who demand excellence.",
+      "price": 1299.99,
+      "original_price": 1699.99,
+      "suit_type": "business",
+      "fabric": "wool",
+      "fabric_description": "100% Premium Nepalese Wool with natural stretch and breathability",
+      "colors": ["Charcoal Grey", "Navy Blue", "Classic Black"],
+      "sizes": ["S", "M", "L", "XL", "XXL"],
+      "image_url": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800",
+      "additional_images": [
+        "https://images.unsplash.com/photo-1594736797933-d0d2e7d3e2f8?w=800",
+        "https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=800"
+      ],
+      "care_instructions": "Professional dry clean only. Store on padded hangers to maintain shape.",
+      "in_stock": true,
+      "stock_quantity": 25,
+      "featured": true
+    },
+    {
+      "name": "Traditional Wedding Suit",
+      "description": "Handcrafted wedding suit that honors Nepalese traditions while providing modern elegance for your special day.",
+      "price": 1899.99,
+      "suit_type": "wedding",
+      "fabric": "silk",
+      "fabric_description": "Luxury silk blend with traditional Nepalese craftsmanship",
+      "colors": ["Deep Black", "Rich Navy", "Elegant Charcoal"],
+      "sizes": ["S", "M", "L", "XL"],
+      "image_url": "https://images.unsplash.com/photo-1475403614135-5f1aa0eb5015?w=800",
+      "additional_images": [],
+      "care_instructions": "Professional dry cleaning required. Handle with care to preserve traditional detailing.",
+      "in_stock": true,
+      "stock_quantity": 15,
+      "featured": true
+    },
+    {
+      "name": "Casual Cotton Blend Suit",
+      "description": "Comfortable and versatile suit perfect for business-casual environments and social gatherings.",
+      "price": 799.99,
+      "original_price": 999.99,
+      "suit_type": "casual",
+      "fabric": "cotton",
+      "fabric_description": "Organic cotton blend with stretch fibers for all-day comfort",
+      "colors": ["Light Grey", "Navy", "Olive Green"],
+      "sizes": ["S", "M", "L", "XL", "XXL"],
+      "image_url": "https://images.unsplash.com/photo-1486496572940-2bb2341fdbdf?w=800",
+      "additional_images": [
+        "https://images.unsplash.com/photo-1522673607200-164d1b6ce486?w=800"
+      ],
+      "care_instructions": "Machine washable on gentle cycle. Hang dry recommended.",
+      "in_stock": true,
+      "stock_quantity": 40,
+      "featured": false
+    }
+  ],
+  "culture_stories": [
+    {
+      "title": "Our Family Heritage",
+      "content": "Founded three generations ago in the heart of Kathmandu, our family business has been dedicated to preserving the art of traditional Nepalese tailoring. What started as a small workshop in my grandfather's home has grown into a brand that represents the finest in Nepalese craftsmanship. Every suit we create carries the legacy of our ancestors and the promise of quality that has been passed down through generations. Our story is one of dedication, tradition, and an unwavering commitment to excellence.",
+      "image_url": "https://images.unsplash.com/photo-1594736797933-d0d2e7d3e2f8?w=800",
+      "category": "heritage",
+      "featured": true
+    },
+    {
+      "title": "Master Craftsmen of Nepal",
+      "content": "Our team consists of master tailors who have learned their craft through years of dedicated apprenticeship. Each artisan brings decades of experience and a deep understanding of traditional Nepalese tailoring techniques. From hand-stitched buttonholes to perfectly aligned patterns, every detail reflects their mastery. These skilled craftsmen don't just make suits; they create wearable art that tells the story of Nepal's rich textile heritage.",
+      "image_url": "https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=800",
+      "category": "craftsmanship",
+      "featured": true
+    },
+    {
+      "title": "Sustainable Practices",
+      "content": "Our commitment to the environment reflects the Nepalese philosophy of living in harmony with nature. We source our materials from ethical suppliers, minimize waste in our production process, and ensure that our practices support local communities. Every suit is made with respect for the environment and the people who wear them. Sustainability isn't just a business practice for us—it's a reflection of our values and our responsibility to future generations.",
+      "image_url": "https://images.unsplash.com/photo-1486496572940-2bb2341fdbdf?w=800",
+      "category": "sustainability",
+      "featured": false
+    }
+  ]
+}
